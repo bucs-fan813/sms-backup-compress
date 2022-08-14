@@ -12,6 +12,7 @@ import tarfile
 from os import makedirs
 from os.path import exists
 from pathlib import Path
+from progress.bar import Bar
 from hurry.filesize import size, si
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -66,8 +67,10 @@ def main():
         if not items:
             print('No files found.')
             return
+
+        bar = Bar('Compressing SMS Backups', max=len(items), suffix='%(percent)d%% [%(index)s / %(max)s]')
         for item in items:
-            # ({1}) {2} {3}'.format(item['name'], item['id'], item['quotaBytesUsed'], item['parents']))
+            bar.next()
             filename_raw = str(item['name'])
             filename_friendly = filename_raw.split(".")[0]
             compressed_filename = f"{filename_friendly}.tar.gz"
@@ -110,6 +113,8 @@ def main():
             logging.info(f"Deleting (local) {compressed_filename}")
             delete = Path(f"tmp/{compressed_filename}")
             delete.unlink(missing_ok=True)
+        bar.finish()
+
 
     except HttpError as error:
         # TODO(developer) - Handle errors from drive API.
