@@ -1,7 +1,3 @@
-# https://developers.google.com/drive/api/quickstart/python
-# https://developers.google.com/resources/api-libraries/documentation/drive/v3/python/latest/drive_v3.files.html
-# https://console.cloud.google.com/apis/credentials
-
 from __future__ import print_function
 
 import logging
@@ -77,7 +73,7 @@ def main():
             size_raw = int(item['quotaBytesUsed'])
             size_friendly = size(size_raw, system=si)
 
-            logging.info(f"Downloading {filename_raw} ({size_friendly})...")
+            logging.info(f"\nDownloading {filename_raw} ({size_friendly})...")
             with open(f"tmp/{filename_raw}", 'wb') as file:
                 file.write(service.files().get_media(fileId=item['id']).execute())
             logging.info(f"Saved (local) {filename_raw}")
@@ -91,8 +87,8 @@ def main():
             compressed_size_raw = os.path.getsize(f"tmp/{compressed_filename}")
             compressed_size_friendly = size(compressed_size_raw, system=si)
 
-            percent = (float(compressed_size_raw) / float(size_raw))
-            logging.info(f"Compressed {size_friendly} => {compressed_size_friendly} ({'{:.2%}'.format(percent)})")
+            percent = 1 - (float(compressed_size_raw) / float(size_raw))
+            logging.info(f"Compressed {size_friendly} => {compressed_size_friendly} (↓{'{:.2%}'.format(percent)})")
 
             logging.info(f"Deleting local {filename_raw}")
             delete = Path(f"tmp/{filename_raw}")
