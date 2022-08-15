@@ -58,13 +58,14 @@ def main():
             q="(name contains 'sms' or name contains 'calls') and name contains 'xml' and not name contains 'tar.gz'",
             pageSize=1000,
             fields="nextPageToken, files(id, name, quotaBytesUsed, parents)").execute()
+        # Sort the results by filesize from smallest to largest
         items = sorted(results.get('files', []), key=lambda d: int(d['quotaBytesUsed']))
 
         if not items:
             print('No files found.')
             return
 
-        bar = Bar('Compressing SMS Backups', max=len(items), suffix='%(percent)d%% [%(index)s / %(max)s]')
+        bar = Bar('Compressing SMS Backups', max=len(items), suffix='%(percent)d%% [%(index)s / %(max)s]\n')
         for item in items:
             bar.next()
             filename_raw = str(item['name'])
@@ -73,7 +74,7 @@ def main():
             size_raw = int(item['quotaBytesUsed'])
             size_friendly = size(size_raw, system=si)
 
-            logging.info(f"\nDownloading {filename_raw} ({size_friendly})...")
+            logging.info(f"Downloading {filename_raw} ({size_friendly})...")
             with open(f"tmp/{filename_raw}", 'wb') as file:
                 file.write(service.files().get_media(fileId=item['id']).execute())
             logging.info(f"Saved (local) {filename_raw}")
@@ -103,7 +104,6 @@ def main():
                                     mimetype='application/gzip',
                                     resumable=True)
             logging.info(f"Uploading {compressed_filename} ({compressed_size_friendly})...")
-
             service.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
             logging.info(f"Deleting (local) {compressed_filename}")
